@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from transformers import MarianMTModel, MarianTokenizer
 
 # Définir le chemin vers votre modèle
-model_name = 'https://drive.google.com/drive/folders/12vxuoCVSp3JsQoav1O87tINsTrxpOqIz?usp=sharing'
+model_name = 'https://drive.google.com/drive/folders/12vxuoCVSp3JsQoav1O87tINsTrxpOqIz?usp=drive_link'
 
 # Charger le modèle et le tokenizer
 model = MarianMTModel.from_pretrained(model_name)
