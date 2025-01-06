@@ -3,10 +3,10 @@ from pydantic import BaseModel
 from transformers import MarianMTModel, MarianTokenizer
 
 # Définir le chemin vers votre modèle
-model_name = 'https://drive.google.com/drive/folders/12vxuoCVSp3JsQoav1O87tINsTrxpOqIz?usp=drive_link'
+model_name = 'translation_fr_li_model'
 
 # Charger le modèle et le tokenizer
-model = MarianMTModel.from_pretrained(model_name)
+model = MarianMTModel.from_pretrained("https://drive.google.com/file/d/1lyYFyeMYZvApWxNpBv0Wk3jUkdMUDP7m/view?usp=drive_link")
 tokenizer = MarianTokenizer.from_pretrained(model_name)
 
 # Initialiser FastAPI
