@@ -2,17 +2,17 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from transformers import MarianMTModel, MarianTokenizer
 
-# Définir le chemin vers votre modèle
-model_name = 'translation_fr_li_model'
+# Définir le chemin vers votre modèle Hugging Face
+model_name = "MrFrijo/LiAPI"
 
-# Charger le modèle et le tokenizer
-model = MarianMTModel.from_pretrained("https://drive.google.com/file/d/1lyYFyeMYZvApWxNpBv0Wk3jUkdMUDP7m/view?usp=drive_link")
+# Charger le modèle et le tokenizer depuis Hugging Face
+model = MarianMTModel.from_pretrained(model_name)
 tokenizer = MarianTokenizer.from_pretrained(model_name)
 
 # Initialiser FastAPI
 app = FastAPI()
 
-# Schéma pour les requêtes
+# Schéma pour les requêtes de traduction
 class TranslationRequest(BaseModel):
     text: str
     src_lang: str  # Langue source (fr ou li)
@@ -21,20 +21,22 @@ class TranslationRequest(BaseModel):
 # Endpoint de test
 @app.get("/")
 def home():
-   
-    return {"message": "Bienvenue sur l'API Lingala!"}, {"text sortie":f"{translated_text}"}
+    return {"message": "Bienvenue sur l'API Lingala!"}
 
 # Endpoint pour la traduction
 @app.post("/translate/")
 def translate(request: TranslationRequest):
-    if request.src_lang not in ["fr", "li"] or request.target_lang not in ["fr", "li"]:
+    if request.src_lang not in ["fr", "li"] or request.target_lang not in ["li", "fr"]:
         return {"error": "Les langues doivent être 'fr' (Français) ou 'li' (Lingala)."}
 
     if request.src_lang == request.target_lang:
         return {"error": "Les langues source et cible ne peuvent pas être identiques."}
 
+    # Gérer la casse de l'entrée (sensible à la majuscule/minuscule)
+    input_text = request.text
+
     # Tokeniser le texte
-    tokenized_text = tokenizer(request.text, return_tensors="pt")
+    tokenized_text = tokenizer(input_text, return_tensors="pt")
 
     # Effectuer la traduction
     translated = model.generate(**tokenized_text)
@@ -44,7 +46,7 @@ def translate(request: TranslationRequest):
 
     # Retourner le résultat
     return {
-        "source_text": request.text,
+        "source_text": input_text,
         "translated_text": translated_text,
         "source_language": request.src_lang,
         "target_language": request.target_lang,
