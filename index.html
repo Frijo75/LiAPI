@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Traducteur français-lingala moderne">
+    <meta name="keywords" content="Traduction Lingala, Lingala Moderne, traduire en lingala, Traduction de français en lingala, traduction lingala">
+    <meta name="author" content="Mr. Frijo">
+    <title>Traduction Français ⇌ Lingala</title>
+    <style>
+        /* Police Google */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        
+        /* Style général */
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            background: #fff;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.4em;
+            font-weight: 700;
+            color: #444;
+        }
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            box-sizing: border-box;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+            resize: none;
+            transition: border-color 0.3s ease;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #007BFF;
+        }
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        button:first-child {
+            background-color: #007BFF;
+            color: #fff;
+        }
+        button:last-child {
+            background-color: #28a745;
+            color: #fff;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: 500;
+            color: #555;
+            padding: 10px 15px;
+            background: #f1f1f1;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .rating-section {
+            margin-top: 25px;
+        }
+        .rating-section button {
+            background-color: #ffc107;
+            color: #333;
+        }
+        footer {
+            margin-top: 30px;
+            font-size: 14pt;
+            color: rgb(129, 128, 128);
+            text-align: center;
+            padding: 5px;
+        }
+    </style>
+   
+</head>
+<body>
+    <div class="container">
+        <h1>Traduction Français ⇌ Lingala</h1>
+        <textarea id="inputText" placeholder="Saisissez votre texte ici..."></textarea>
+        <br>
+        <button style="background: #4fe271; color: rgb(255, 255, 255);" class="fr_li">Français → Lingala</button>
+        <button class="li_fr">Lingala → Français</button>
+        <div class="result" id="result">Le résultat s'affichera ici.</div>
+        
+        <!-- Section d'évaluation -->
+        <div class="rating-section">
+            <h2>Évaluer la traduction</h2>
+            <button class="positive">👍 Positive</button>
+            <button class="negative">👎 Negative</button>
+        </div>
+    </div>
+    <footer>
+        &copy; 2025 Traduction Lingala Moderne par Mr. Frijo. Tous droits réservés.
+    </footer>
+     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+       
+       $(document).ready(function(){
+        $(".fr_li").on({
+            click : function(){
+            inputText = $("#inputText").val();
+            $("#result").text("Traduction en cours...");
+
+            $.ajax({
+                url: "https://liapi.onrender.com/translate/",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ 
+                    text: inputText, 
+                    src_lang: 'fr', 
+                    target_lang: 'li' 
+                }),
+                success: function(response) {
+                    $("#result").text(response.translated_text);
+                },
+                error: function(error) {
+                    $("#result").text("Erreur lors de la traduction. Veuillez réessayer.");
+                }
+            });
+            }
+        })
+            
+        $(".positive").on({
+            click : function(){
+                const resultText = $("#result").text();
+            if (!resultText || resultText === "Le résultat s'affichera ici.") {
+                alert("Veuillez d'abord effectuer une traduction avant de donner votre avis.");
+                return;
+            }else{
+                $.ajax({
+                url: "https://liapi.onrender.com/evaluate/",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ 
+                    translated_text: resultText, 
+                    feedback: "meilleur" 
+                }),
+                success: function() {
+                    alert("Merci pour votre évaluation !");
+                },
+                error: function() {
+                    alert("Erreur lors de l'envoi de votre évaluation.");
+                }
+            });
+            }
+            
+            }
+        })
+        $(".negative").on({
+            click : function(){
+                const resultText = $("#result").text();
+            if (!resultText || resultText === "Le résultat s'affichera ici.") {
+                alert("Veuillez d'abord effectuer une traduction avant de donner votre avis.");
+                return;
+            }else{
+                $.ajax({
+                url: "https://liapi.onrender.com/evaluate/",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ 
+                    translated_text: resultText, 
+                    feedback: "mauvais" 
+                }),
+                success: function() {
+                    alert("Merci pour votre évaluation !");
+                },
+                error: function() {
+                    alert("Erreur lors de l'envoi de votre évaluation.");
+                }
+            });
+            }
+            
+            }
+        })
+     
+       })
+    </script>
+</body>
+</html>
