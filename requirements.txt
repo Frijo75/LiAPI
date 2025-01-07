@@ -2,5 +2,6 @@ fastapi
 uvicorn
 safetensors
 torch
+json
 transformers
 sentencepiece
