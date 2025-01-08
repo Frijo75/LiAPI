@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from transformers import MarianMTModel, MarianTokenizer
 import json
 from fastapi.middleware.cors import CORSMiddleware
+app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Modifie ici pour spécifier des domaines spécifiques
@@ -18,7 +19,7 @@ model = MarianMTModel.from_pretrained(model_name)
 tokenizer = MarianTokenizer.from_pretrained(model_name)
 
 # Initialiser FastAPI
-app = FastAPI()
+
 
 # Schémas pour les requêtes
 class TranslationRequest(BaseModel):
