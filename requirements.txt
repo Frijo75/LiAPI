@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 safetensors
+pydantic
 torch
 transformers
 sentencepiece
