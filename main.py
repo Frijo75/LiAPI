@@ -1,9 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from transformers import MarianMTModel, MarianTokenizer
-import json
 from fastapi.middleware.cors import CORSMiddleware
+import json
+import os
+
+# Initialiser l'application FastAPI
 app = FastAPI()
+
+# Ajouter les configurations CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Modifie ici pour spécifier des domaines spécifiques
@@ -11,15 +16,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# Définir le chemin vers votre modèle Hugging Face
-model_name = "MrFrijo/LiAPI"
 
-# Charger le modèle et le tokenizer depuis Hugging Face
-model = MarianMTModel.from_pretrained(model_name)
-tokenizer = MarianTokenizer.from_pretrained(model_name)
-
-# Initialiser FastAPI
-
+# Charger le modèle et le tokenizer
+try:
+    model_name = "MrFrijo/LiAPI"  # Remplace par le bon chemin si nécessaire
+    model = MarianMTModel.from_pretrained(model_name)
+    tokenizer = MarianTokenizer.from_pretrained(model_name)
+except Exception as e:
+    raise RuntimeError(f"Erreur lors du chargement du modèle : {e}")
 
 # Schémas pour les requêtes
 class TranslationRequest(BaseModel):
@@ -39,54 +43,56 @@ def home():
 # Endpoint pour la traduction
 @app.post("/translate/")
 def translate(request: TranslationRequest):
-    # Validation des langues source et cible
-    if request.src_lang not in ["fr", "li"] or request.target_lang not in ["li", "fr"]:
-        raise HTTPException(status_code=400, detail="Les langues doivent être 'fr' ou 'li'.")
-    if request.src_lang == request.target_lang:
-        raise HTTPException(status_code=400, detail="Les langues source et cible ne peuvent pas être identiques.")
+    try:
+        # Validation des langues source et cible
+        if request.src_lang not in ["fr", "li"] or request.target_lang not in ["li", "fr"]:
+            raise HTTPException(status_code=400, detail="Les langues doivent être 'fr' ou 'li'.")
+        if request.src_lang == request.target_lang:
+            raise HTTPException(status_code=400, detail="Les langues source et cible ne peuvent pas être identiques.")
 
-    # Vérification si le texte est vide
-    input_text = request.text.strip()
-    if not input_text:
-        raise HTTPException(status_code=400, detail="Le texte à traduire est vide.")
+        # Vérification si le texte est vide
+        input_text = request.text.strip()
+        if not input_text:
+            raise HTTPException(status_code=400, detail="Le texte à traduire est vide.")
 
-    # Tokeniser le texte
-    tokenized_text = tokenizer(input_text, return_tensors="pt")
+        # Ajout de préfixe pour MarianMT
+        input_text = f">>{request.target_lang}<< {input_text}"
+        tokenized_text = tokenizer(input_text, return_tensors="pt")
 
-    # Effectuer la traduction
-    translated = model.generate(**tokenized_text)
+        # Effectuer la traduction
+        translated = model.generate(**tokenized_text)
 
-    # Convertir les tokens traduits en texte
-    translated_text = tokenizer.decode(translated[0], skip_special_tokens=True)
+        # Convertir les tokens traduits en texte
+        translated_text = tokenizer.decode(translated[0], skip_special_tokens=True)
 
-    return {
-        "source_text": input_text,
-        "translated_text": translated_text,
-        "source_language": request.src_lang,
-        "target_language": request.target_lang,
-    }
+        return {
+            "source_text": request.text.strip(),
+            "translated_text": translated_text,
+            "source_language": request.src_lang,
+            "target_language": request.target_lang,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la traduction : {str(e)}")
 
 # Endpoint pour l'évaluation
 @app.post("/evaluate/")
 def evaluate(request: EvaluationRequest):
-    # Vérifier le feedback
-    if request.feedback not in ["positive", "negative"]:
-        raise HTTPException(status_code=400, detail="Le feedback doit être 'positive' ou 'negative'.")
-
-    # Construire une entrée de feedback
-    feedback_data = {
-        "translated_text": request.translated_text,
-        "feedback": request.feedback,
-    }
-
-    # Enregistrer les évaluations dans un fichier JSON
     try:
-        with open("feedback.json", "a") as f:
-            f.write(json.dumps(feedback_data) + "\n")
+        # Vérifier le feedback
+        if request.feedback not in ["positive", "negative"]:
+            raise HTTPException(status_code=400, detail="Le feedback doit être 'positive' ou 'negative'.")
+
+        # Construire une entrée de feedback
+        feedback_data = {
+            "translated_text": request.translated_text,
+            "feedback": request.feedback,
+        }
+
+        # Enregistrer les évaluations dans un fichier JSON
+        feedback_file = "feedback.json"
+        with open(feedback_file, "a", encoding="utf-8") as f:
+            f.write(json.dumps(feedback_data, ensure_ascii=False) + "\n")
+
+        return {"message": "Merci pour votre évaluation !"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur lors de l'enregistrement : {str(e)}")
-
-    return {"message": "Merci pour votre évaluation !"}
-
-# Exemple d'utilisation
-# Pour lancer l'API : `uvicorn nom_du_fichier:app --reload`
