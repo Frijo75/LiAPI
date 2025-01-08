@@ -3,6 +3,13 @@ from pydantic import BaseModel
 from transformers import MarianMTModel, MarianTokenizer
 import json
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Modifie ici pour spécifier des domaines spécifiques
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # Définir le chemin vers votre modèle Hugging Face
 model_name = "MrFrijo/LiAPI"
 
