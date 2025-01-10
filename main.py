@@ -64,6 +64,11 @@ def translate(request: TranslationRequest):
 
         # Convertir les tokens traduits en texte
         translated_text = tokenizer.decode(translated[0], skip_special_tokens=True)
+        texte = translated_text.replace('â', 'á').replace('ô', 'ó')
+        # Remplacement spécifique de "bongó" par "bongô"
+        translated_text = texte.replace('mbonte', 'mbónte')
+        translated_text = texte.replace('bongó', 'bongô')
+        
 
         return {
             "source_text": request.text.strip(),
